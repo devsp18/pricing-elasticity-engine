@@ -1,0 +1,11 @@
+category,elasticity,std_error,pvalue,n_months,method
+sports_leisure,-4.615,2.101,0.041,21,OLS
+watches_gifts,-4.048,0.707,0.0,21,OLS
+garden_tools,-3.191,0.215,0.0,21,OLS
+auto,-1.696,1.438,0.254,21,OLS
+health_beauty,-0.501,1.381,0.721,22,OLS
+housewares,1.18,1.29,0.372,21,OLS
+furniture_decor,1.389,1.235,0.276,21,OLS
+telephony,1.448,0.456,0.005,21,OLS
+computers_accessories,4.257,0.759,0.0,21,OLS
+bed_bath_table,7.803,1.858,0.001,21,OLS
