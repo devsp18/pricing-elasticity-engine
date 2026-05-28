@@ -30,7 +30,7 @@ IV Regression (2SLS) → Corrected elasticity
     ↓
 Monte Carlo Price Optimizer
     ↓
-Streamlit Dashboard (coming soon)
+Streamlit Dashboard (live)
 ```
 
 ## Charts
@@ -54,7 +54,7 @@ Streamlit Dashboard (coming soon)
 | Econometrics | statsmodels, linearmodels |
 | Simulation | scipy, NumPy Monte Carlo |
 | Visualization | matplotlib, seaborn |
-| Dashboard | Streamlit, Plotly (coming soon) |
+| Dashboard | Streamlit, Plotly |
 | Version control | Git, GitHub |
 
 ## Dataset
@@ -72,4 +72,4 @@ Streamlit Dashboard (coming soon)
 ## Author
 
 **Satyam Patel** — Business Analytics + Economics, Arizona State University
-[LinkedIn](https://linkedin.com/in/patelsatyam18) · [GitHub](https://github.com/devsp18)
+[Live Dashboard](https://pricing-elasticity-satyam.streamlit.app) · [LinkedIn](https://linkedin.com/in/patelsatyam18) · [GitHub](https://github.com/devsp18)
