@@ -10,32 +10,27 @@ st.set_page_config(
     layout="wide"
 )
 
-# ── Custom CSS ──────────────────────────────────────────────
 st.markdown("""
 <style>
-
 html, body, [class*="css"] {
-    font-family: 'Inter', sans-serif;
+    background-color: #F7F7F5;
 }
-
 .main { background-color: #F7F7F5; }
 .block-container { padding: 2rem 2.5rem; }
 
-/* Sidebar */
 [data-testid="stSidebar"] {
     background-color: #1a1a2e;
     border-right: none;
 }
 [data-testid="stSidebar"] * { color: #e0e0e0 !important; }
 [data-testid="stSidebar"] .stSelectbox label,
-[data-testid="stSidebar"] .stSlider label { 
-    color: #a0a0b0 !important; 
+[data-testid="stSidebar"] .stSlider label {
+    color: #a0a0b0 !important;
     font-size: 12px !important;
     text-transform: uppercase;
     letter-spacing: 0.05em;
 }
 
-/* KPI cards */
 .kpi-card {
     background: white;
     border-radius: 12px;
@@ -59,21 +54,9 @@ html, body, [class*="css"] {
     color: #1a1a2e;
     line-height: 1;
 }
-.kpi-sub {
-    font-size: 12px;
-    color: #1D9E75;
-    font-weight: 500;
-}
+.kpi-sub { font-size: 12px; color: #1D9E75; font-weight: 500; }
 .kpi-sub.negative { color: #E24B4A; }
 
-/* Chart containers */
-.chart-container {
-    background: white;
-    border-radius: 12px;
-    border: 1px solid #EBEBEB;
-    padding: 24px;
-    margin-bottom: 16px;
-}
 .chart-title {
     font-size: 14px;
     font-weight: 600;
@@ -86,17 +69,6 @@ html, body, [class*="css"] {
     margin-bottom: 16px;
 }
 
-/* Header */
-.header-badge {
-    display: inline-block;
-    background: #EEF2FF;
-    color: #4F46E5;
-    font-size: 11px;
-    font-weight: 500;
-    padding: 4px 10px;
-    border-radius: 99px;
-    margin-bottom: 8px;
-}
 .main-title {
     font-size: 28px;
     font-weight: 600;
@@ -109,14 +81,12 @@ html, body, [class*="css"] {
     margin-bottom: 24px;
 }
 
-/* Divider */
-.divider { 
-    height: 1px; 
-    background: #EBEBEB; 
-    margin: 24px 0; 
+.divider {
+    height: 1px;
+    background: #EBEBEB;
+    margin: 24px 0;
 }
 
-/* Insight box */
 .insight-box {
     background: #F0FDF9;
     border: 1px solid #6EE7C7;
@@ -138,7 +108,6 @@ html, body, [class*="css"] {
 </style>
 """, unsafe_allow_html=True)
 
-# ── Load data ───────────────────────────────────────────────
 @st.cache_data
 def load_data():
     base = Path(__file__).parent.parent
@@ -146,15 +115,14 @@ def load_data():
 
 elasticity_df = load_data()
 
-# ── Optimizer ───────────────────────────────────────────────
 def price_optimizer(current_price, current_qty,
                     elasticity, std_error, n_sims=10000):
     e_samples   = np.random.normal(elasticity, std_error, n_sims)
     multipliers = np.linspace(0.5, 2.0, 100)
     rows = []
     for mult in multipliers:
-        new_price   = current_price * mult
-        revenues    = new_price * current_qty * np.exp(e_samples * np.log(mult))
+        new_price = current_price * mult
+        revenues  = new_price * current_qty * np.exp(e_samples * np.log(mult))
         rows.append({
             "price":       round(new_price, 2),
             "rev_mean":    revenues.mean(),
@@ -164,11 +132,9 @@ def price_optimizer(current_price, current_qty,
         })
     return pd.DataFrame(rows)
 
-# ── Sidebar ─────────────────────────────────────────────────
 with st.sidebar:
     st.markdown("### ⚙️ Controls")
     st.markdown("---")
-
     category = st.selectbox(
         "Product category",
         options=elasticity_df["category"].str.replace("_", " ").str.title().tolist()
@@ -176,34 +142,28 @@ with st.sidebar:
     st.markdown(" ")
     current_price = st.slider("Current price (R$)", 10, 500, 100, step=5)
     current_qty   = st.slider("Monthly sales (units)", 10, 2000, 200, step=10)
-
     st.markdown("---")
     st.markdown("##### 📖 Methodology")
     st.markdown("""
-    Elasticity estimated using **2SLS IV regression**. 
-    Freight cost used as instrument to correct OLS endogeneity bias.
-    
-    Monte Carlo runs **10,000 simulations** per price point to generate confidence intervals.
+Elasticity estimated using **2SLS IV regression**.
+Freight cost used as instrument to correct OLS endogeneity bias.
+
+Monte Carlo runs **10,000 simulations** per price point.
     """)
     st.markdown("---")
     st.markdown("Built by **Satyam Patel**  \nASU · Business Analytics + Economics")
 
-# ── Header ──────────────────────────────────────────────────
 st.markdown('<div class="main-title">Pricing Elasticity Engine</div>', unsafe_allow_html=True)
 st.markdown('<div class="main-subtitle">Brazilian e-commerce · Olist dataset · IV regression (2SLS) · Monte Carlo simulation · 108k transactions</div>', unsafe_allow_html=True)
 
-# ── Get elasticity ───────────────────────────────────────────
-cat_key = category.lower().replace(" ", "_")
-e_row   = elasticity_df[elasticity_df["category"] == cat_key].iloc[0]
-e_mean  = e_row["elasticity"]
-e_se    = e_row["std_error"]
-
+cat_key     = category.lower().replace(" ", "_")
+e_row       = elasticity_df[elasticity_df["category"] == cat_key].iloc[0]
+e_mean, e_se = e_row["elasticity"], e_row["std_error"]
 results     = price_optimizer(current_price, current_qty, e_mean, e_se)
 best        = results.loc[results["rev_mean"].idxmax()]
 current_rev = current_price * current_qty
 uplift      = (best["rev_mean"] / current_rev - 1) * 100
 
-# ── KPI Row ──────────────────────────────────────────────────
 c1, c2, c3, c4 = st.columns(4)
 
 with c1:
@@ -244,14 +204,11 @@ with c4:
 
 st.markdown("<div style='margin-top:20px'></div>", unsafe_allow_html=True)
 
-# ── Charts Row ───────────────────────────────────────────────
 left, right = st.columns([3, 2])
 
 with left:
-    st.markdown(f"""
-    <div class="chart-title">Revenue optimization curve</div>
-    <div class="chart-subtitle">{category} · Monte Carlo 10k simulations · 80% confidence band</div>
-    """, unsafe_allow_html=True)
+    st.markdown(f'<div class="chart-title">Revenue optimization curve</div>', unsafe_allow_html=True)
+    st.markdown(f'<div class="chart-subtitle">{category} · Monte Carlo 10k simulations · 80% confidence band</div>', unsafe_allow_html=True)
 
     fig = go.Figure()
     fig.add_trace(go.Scatter(
@@ -262,11 +219,9 @@ with left:
     fig.add_trace(go.Scatter(
         x=list(results["price"]) + list(results["price"][::-1]),
         y=list(results["rev_p90"]) + list(results["rev_p10"][::-1]),
-        fill="toself",
-        fillcolor="rgba(79,70,229,0.08)",
+        fill="toself", fillcolor="rgba(79,70,229,0.08)",
         line=dict(color="rgba(0,0,0,0)"),
-        name="80% confidence interval",
-        showlegend=True
+        name="80% confidence interval"
     ))
     fig.add_vline(x=current_price, line_color="#F59E0B",
                   line_dash="dash", line_width=1.5,
@@ -287,32 +242,26 @@ with left:
         margin=dict(t=20, b=40, l=60, r=20),
         legend=dict(orientation="h", yanchor="bottom",
                     y=1.01, xanchor="left", x=0),
-        font=dict(family="Inter", size=11, color="#555"),
-        xaxis=dict(showgrid=True, gridcolor="#F0F0F0",
-                   linecolor="#E0E0E0"),
-        yaxis=dict(showgrid=True, gridcolor="#F0F0F0",
-                   linecolor="#E0E0E0")
+        font=dict(size=11, color="#555"),
+        xaxis=dict(showgrid=True, gridcolor="#F0F0F0", linecolor="#E0E0E0"),
+        yaxis=dict(showgrid=True, gridcolor="#F0F0F0", linecolor="#E0E0E0")
     )
     st.plotly_chart(fig, use_container_width=True)
 
-    # Insight box
     if uplift > 50:
         st.markdown(f"""
         <div class="insight-box">
             <div class="insight-title">💡 Key insight</div>
             <div class="insight-text">
-                <b>{category}</b> is highly price-sensitive (elasticity {e_mean:.2f}). 
-                Moving from R${current_price} to R${best['price']:.0f} could generate 
-                <b>{uplift:.0f}% more revenue</b> with {best['prob_better']*100:.0f}% confidence. 
-                This category rewards aggressive pricing strategy.
+                <b>{category}</b> is highly price-sensitive (elasticity {e_mean:.2f}).
+                Moving from R${current_price} to R${best['price']:.0f} could generate
+                <b>{uplift:.0f}% more revenue</b> with {best['prob_better']*100:.0f}% confidence.
             </div>
         </div>""", unsafe_allow_html=True)
 
 with right:
-    st.markdown("""
-    <div class="chart-title">Elasticity by category</div>
-    <div class="chart-subtitle">Red = price sensitive · Blue = inelastic / Veblen effect</div>
-    """, unsafe_allow_html=True)
+    st.markdown('<div class="chart-title">Elasticity by category</div>', unsafe_allow_html=True)
+    st.markdown('<div class="chart-subtitle">Red = price sensitive · Blue = inelastic / Veblen effect</div>', unsafe_allow_html=True)
 
     plot_df = elasticity_df.sort_values("elasticity")
     colors  = ["#EF4444" if v < -2 else "#FCA5A5" if v < 0
@@ -334,20 +283,18 @@ with right:
         paper_bgcolor="white",
         height=380,
         margin=dict(t=20, b=40, l=10, r=20),
-        font=dict(family="Inter", size=10, color="#555"),
-        xaxis=dict(showgrid=True, gridcolor="#F0F0F0",
-                   linecolor="#E0E0E0", zeroline=False),
+        font=dict(size=10, color="#555"),
+        xaxis=dict(showgrid=True, gridcolor="#F0F0F0", linecolor="#E0E0E0", zeroline=False),
         yaxis=dict(showgrid=False, linecolor="#E0E0E0")
     )
     st.plotly_chart(fig2, use_container_width=True)
 
-# ── Footer ───────────────────────────────────────────────────
 st.markdown("<div class='divider'></div>", unsafe_allow_html=True)
 st.markdown("""
 <div style='display:flex; justify-content:space-between; align-items:center'>
     <div style='font-size:12px; color:#aaa'>
-        Built by <b style='color:#555'>Satyam Patel</b> · 
-        Business Analytics + Economics, ASU · 
+        Built by <b style='color:#555'>Satyam Patel</b> ·
+        Business Analytics + Economics, ASU ·
         <a href='https://github.com/devsp18' style='color:#4F46E5'>github.com/devsp18</a>
     </div>
     <div style='font-size:11px; color:#bbb'>
